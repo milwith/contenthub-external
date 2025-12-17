@@ -1,27 +1,14 @@
-(function () {
+export default function createExternalRoot(container, clientBuilder) {
 
-  // Ensure Sitecore APIs exist
-  if (!window.sitecore || !window.sitecore.events) {
-    console.error("Sitecore event system not available");
-    return;
-  }
+  container.innerHTML = `
+    <div id="entity-api-container" style="padding:12px"></div>
+  `;
 
-  // Create container for the component
-  const container = document.createElement("div");
-  container.id = "entity-api-container";
-  container.style.padding = "12px";
-  document.body.appendChild(container);
-
-  // Get current entity id from page context
-  function getEntityId() {
-    return window.sitecore?.page?.entity?.id;
-  }
-
-  // Render function
-  function render(entityId) {
+  function render(context) {
+    const entityId = context?.page?.entity?.id;
     if (!entityId) return;
 
-    container.innerHTML = `
+    container.querySelector("#entity-api-container").innerHTML = `
       <strong>Entity API URL:</strong><br/>
       <a href="/api/entities/${entityId}" target="_blank">
         /api/entities/${entityId}
@@ -29,16 +16,10 @@
     `;
   }
 
-  // Initial render on page load
-  const entityId = getEntityId();
-  render(entityId);
-
-  // Subscribe to entityCreated event
-  window.sitecore.events.on("entityCreated", function (event) {
-    console.log("Entity created:", event);
-    if (event?.id) {
-      render(event.id);
+  return {
+    render,
+    unmount() {
+      container.innerHTML = "";
     }
-  });
-
-})();
+  };
+}
